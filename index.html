@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Google Security Alert</title>
+<link rel="icon" href="https://accounts.google.com/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap');
+
+body{ 
+  margin:0; 
+  padding-top:40px; 
+  background:#fafbfc; 
+  font-family:'Google Sans','Roboto',system-ui; 
+  color:#1a1a1a; 
+}
+
+/* HEADER */
+.header{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:40px;
+  background:#ffffff;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #dadce0;
+  z-index:1000;
+}
+.header img{width:22px}
+.header span{
+  font-size:14px;
+  font-weight:500;
+  color:#3c4043;
+}
+
+/* CARD */
+.card{
+  max-width:420px;
+  margin:20px auto;
+  background:#ffffff;
+  border:1px solid #dadce0;
+  border-radius:8px;
+  padding:22px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  position:relative;
+}
+
+/* TEXT */
+.line{opacity:0;transition:.6s;margin:10px 0}
+.alert-title{
+  font-size:20px;
+  font-weight:600;
+  margin-bottom:8px;
+}
+.danger{color:#d93025;font-weight:600}
+.subtle{
+  color:#5f6368;
+  font-size:14px;
+}
+.small{
+  font-size:12px;
+  color:#5f6368;
+  text-align:center;
+  margin-top:10px;
+}
+
+/* ALERT BOX (from Code-2 reference, Google-style) */
+.alert-box{
+  background:#f1f3f4;
+  border-left:4px solid #d93025;
+  padding:12px;
+  border-radius:6px;
+  margin:12px 0;
+  font-size:14px;
+}
+
+/* URGENCY */
+.critical-warning{
+  background:#fef7e0;
+  border:1px solid #fbbc04;
+  padding:12px;
+  border-radius:6px;
+  margin:14px 0;
+  font-size:14px;
+  animation:pulse 1.2s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:.85}
+}
+.urgent-shake{animation:shake .4s linear infinite}
+@keyframes shake{
+  25%{transform:translateX(-3px)}
+  50%{transform:translateX(3px)}
+  75%{transform:translateX(-3px)}
+}
+
+/* BUTTONS */
+button{
+  width:100%;
+  padding:16px;
+  margin:8px 0;
+  font-size:15px;
+  font-weight:500;
+  border-radius:8px;
+  border:1px solid #dadce0;
+  background:#f8f9fa;
+  color:#3c4043;
+  cursor:pointer;
+}
+button:hover{background:#e8eaed;}
+button:disabled{opacity:.6;cursor:not-allowed;}
+
+.primary{
+  background:#1a73e8;
+  border:none;
+  color:#fff;
+  font-weight:600;
+}
+.primary:hover{background:#1557b0}
+.secondary{background:#f1f3f4}
+
+.hidden{display:none}
+
+/* OTP */
+.otp-input{
+  width:100%;
+  padding:18px;
+  border:2px solid #dadce0;
+  border-radius:8px;
+  font-size:16px;
+  text-align:center;
+  letter-spacing:8px;
+  font-family:'Roboto Mono',monospace;
+}
+.otp-input:focus{
+  border-color:#1a73e8;
+  outline:none;
+  box-shadow:0 0 0 3px rgba(26,115,232,.15);
+}
+
+/* FINAL */
+.doge-banner{
+  width:100%;
+  max-width:280px;
+  border-radius:16px;
+  display:block;
+  margin:20px auto;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header" id="googleHeader">
+  <img src="https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png">
+  <span>Google Account Security</span>
+</div>
+
+<!-- ================= MAIN ALERT (MODIFIED) ================= -->
+<div class="card" id="main">
+  <h2 class="alert-title">Security alert</h2>
+
+  <p class="line danger">
+    Unusual sign-in attempt blocked
+  </p>
+
+  <p class="line subtle">
+    Google blocked a sign-in attempt that doesn’t match your usual activity.
+  </p>
+
+  <div class="alert-box line">
+    <p>Device: <strong id="device">Detecting…</strong></p>
+    <p>Location: <strong id="region">Detecting…</strong></p>
+  </div>
+
+  <div class="critical-warning line" id="urgencyMsg">
+    Action required to prevent temporary account restriction —
+    <strong><span id="count">90</span>s</strong>
+  </div>
+
+  <button id="verifyBtn" class="primary hidden">
+    Verify activity
+  </button>
+
+  <button id="reviewBtn" class="secondary hidden">
+    Review security activity
+  </button>
+
+  <p class="small">
+    This alert was generated to protect your Google Account.
+  </p>
+</div>
+
+<!-- QUESTIONS -->
+<div class="card hidden" id="q1">
+  <h3>Sign-in verification</h3>
+  <p>Did you authorize this sign-in attempt?</p>
+  <button onclick="next('q2')">Yes</button>
+  <button onclick="next('q2')">No</button>
+</div>
+
+<div class="card hidden" id="q2">
+  <h3>Device check</h3>
+  <p>Is this device familiar to you?</p>
+  <button onclick="next('q3')">Yes</button>
+  <button onclick="next('q3')">No</button>
+</div>
+
+<div class="card hidden" id="q3">
+  <h3>Activity check</h3>
+  <p>Recent travel, VPN use, or shared device?</p>
+  <button onclick="next('q2fa')">Yes</button>
+  <button onclick="next('q2fa')">No</button>
+</div>
+
+<div class="card hidden" id="q2fa">
+  <h3>Enter verification code</h3>
+  <p class="subtle">Code sent to your recovery phone</p>
+  <input class="otp-input" id="fakeCode" maxlength="6" placeholder="••••••">
+  <button id="otpVerifyBtn" class="primary">Continue</button>
+</div>
+
+<div class="card hidden" id="q4">
+  <h3>Final check 👀</h3>
+  <p>Your favourite food?</p>
+  <button onclick="reveal('Biryani 🍗')">Biryani 🍗</button>
+  <button onclick="reveal('Pizza 🍕')">Pizza 🍕</button>
+  <button onclick="reveal('Chocolate 🍫')">Chocolate 🍫</button>
+</div>
+
+<div class="card hidden" id="final" style="text-align:center;">
+  <h2>🎉 GOTCHA!</h2>
+  <img src="./Doge_hnyWish.png" class="doge-banner">
+  <p id="finalMsg"></p>
+  <p class="small">Made with love by Sangeeta 💛</p>
+</div>
+
+<script>
+/* DATA */
+const devices=["Pixel 9 Pro","Galaxy S24 Ultra","iPhone 15 Pro","Chrome on Windows"];
+const regions=["Berlin, Germany","London, UK","New York, USA","Singapore"];
+device.textContent=devices[Math.floor(Math.random()*devices.length)];
+region.textContent=regions[Math.floor(Math.random()*regions.length)];
+
+/* LINE REVEAL */
+document.querySelectorAll('.line').forEach((l,i)=>{
+  setTimeout(()=>l.style.opacity=1,i*600);
+});
+
+/* COUNTDOWN */
+let t=90;
+const timer=setInterval(()=>{
+  t--;
+  count.textContent=t;
+
+  if(t===30) main.classList.add('urgent-shake');
+  if(t===0){
+    clearInterval(timer);
+    startQuestions();
+  }
+},1000);
+
+/* BUTTONS */
+setTimeout(()=>verifyBtn.classList.remove('hidden'),4000);
+setTimeout(()=>{
+  verifyBtn.disabled=true;
+  verifyBtn.textContent="Verification delayed";
+  reviewBtn.classList.remove('hidden');
+},12000);
+
+verifyBtn.onclick=reviewBtn.onclick=startQuestions;
+
+function startQuestions(){
+  clearInterval(timer);
+  main.classList.add('hidden');
+  q1.classList.remove('hidden');
+}
+
+function next(id){
+  document.querySelector('.card:not(.hidden)').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+otpVerifyBtn.onclick=()=>next('q4');
+
+function reveal(food){
+  document.querySelector('.card:not(.hidden)').classList.add('hidden');
+  googleHeader.style.display="none";
+  document.body.style.paddingTop=0;
+
+  finalMsg.innerHTML=`
+  Relax 😄 — no alerts, no tracking.<br><br>
+  Enjoy your <strong>${food}</strong> and have an amazing 2026! 🥳<br><br>
+  🔐 Check real security at
+  <a href="https://myaccount.google.com/security" target="_blank">
+    myaccount.google.com/security
+  </a>
+  `;
+  final.classList.remove('hidden');
+}
+</script>
+</body>
+</html>
